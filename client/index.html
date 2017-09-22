@@ -29,10 +29,9 @@
   </head>
   <body>
     <h4 align="center">Speechtify</h4>
-		<div id="result" class='spotify'>...</div>
+		<div id="result">...</div>
 		<button onclick="startConverting();" id="micBtn"><i class="fa fa-microphone"></i></button>
     <div class="">
-      <input value='' placeholder="insert your search here" id="new-search">
       <input type="button" value='Post' onclick='search()'>
     </div>
 
@@ -83,7 +82,7 @@
 
     function search() {
       axios.post('http://localhost:3000/spotify/search', {
-        search: $('#new-search').val()
+        search: $('#result').text()
       })
       .then(data => {
         console.log('===>', data);
