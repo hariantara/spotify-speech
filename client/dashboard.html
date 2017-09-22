@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script
+      src="https://code.jquery.com/jquery-3.2.1.min.js"
+      integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+      crossorigin="anonymous">
+    </script>
+    <meta charset="utf-8">
+    <title>DASHBOARD</title>
+    <!-- script untuk cek apakah ada token, jika tidak ada balik ke login  -->
+    <script>
+      if(localStorage.getItem('token')){
+        $.ajax({
+            type: 'POST',
+            url: 'http://localhost:3000/verify',
+            data: {token : localStorage.getItem('token')},
+            success: function(data) {
+                console.log('decoded data : '+ JSON.stringify(data))
+                if(!data.id){
+                  window.location.replace('./login.html')
+                }
+            },
+            error: function(err) {
+                console.log(err)
+            }
+        })
+      } else {
+        window.location.replace('./login.html')
+      }
+    </script>
+
+
+
+
+  </head>
+  <body>
+    <h1>DASHBOARD</h1>
+      <h4>Your Token : </h4>
+      <h4 id='token'></h4>
+      <br><br>
+      <a href="./login.html" id='logout'>Logout</a>
+    <script>
+    $(document).ready(function () {
+        console.log('document ready')
+        console.log(localStorage.getItem('token'));
+        $('#token').append(localStorage.getItem('token'))
+
+        $('#logout').click(()=> {
+          localStorage.removeItem('token')
+        })
+    })
+    </script>
+  </body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script
+      src="https://code.jquery.com/jquery-3.2.1.min.js"
+      integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+      crossorigin="anonymous">
+    </script>
+
+    <title>LOGIN</title>
+  </head>
+  <body>
+    <h1>LOGIN</h1>
+    <form action="/login" method="post" id='login-form'>
+      <input type="text" name="username" value="" placeholder="username">
+      <input type="password" name="password" value="" placeholder="password">
+      <input type="submit" value="Login">
+    </form>
+    <h4 id='error-message'></h4>
+    <!-- <h4 id='token'>TOKEN</h4> -->
+
+    <script>
+      $( "#login-form" ).submit(function( event ) {
+
+        // Stop form from submitting normally
+        event.preventDefault();
+
+        // Get some values from elements on the page:
+        var $form = $( this ),
+          username = $form.find( "input[name='username']" ).val(),
+          password = $form.find( "input[name='password']" ).val(),
+          // url = $form.attr( "action" );
+          url = 'http://localhost:3000/login'
+        // Send the data using post
+        var posting = $.post( url, { username: username, password:password});
+
+        // Put the results in a div
+        posting.done(function( data ) {
+          if(data.userdata === null){
+              console.log(data);
+              $("input[name='username']").val('');
+              $("input[name='password']").val('');
+              $('#error-message').empty().append('username not exist')
+          } else {
+            localStorage.setItem('token', `${data.token}`)
+            window.location.replace(data.redirect)
+            // window.location.href = data.redirect
+          }
+
+
+        })
+        .fail(err => {
+          console.log(err)
+          $("input[name='username']").val('');
+          $("input[name='password']").val('');
+          $('#error-message').empty().append('username and password not match')
+
+        })
+      });
+    </script>
+  </body>
+</html>
