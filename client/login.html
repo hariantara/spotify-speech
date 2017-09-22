@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>register</title>
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+
+<body>
+  <center>
+    <h1>Login</h1><br><br>
+
+      Username:<br>
+      <input id="username" type="text" name="firstname" value="">
+      <br> Password:<br>
+      <input id="password" type="text" name="lastname" value="">
+      <br><br>
+      <input class="btn-login" type="button" value="Submit">
+      <a href="/index.html">signup here</a>
+  </center>
+</body>
+
+<script>
+$('.btn-login').click(function() {
+  // alert('halo')
+  axios.post('http://localhost:3000/users/signin', {
+    username: $('#username').val(),
+    password: $('#password').val()
+  })
+  .then(function (response) {
+    console.log(response);
+    localStorage.setItem('token', response.data)
+    console.log(response);
+    var config = {
+        headers: {'token': localStorage.getItem('token')}
+      };
+    if(config.headers != null)
+    {
+      axios.get('http://localhost:3000/users/read', config)
+      .then(resp=>{
+        console.log(resp)
+        window.location.href = "/home.html"
+      })
+      .catch(err=>{
+        console.log(err)
+      })
+    }
+    else {
+      window.location.href = "/login.html"
+    }
+  })
+  .catch(function (error) {
+    console.log(error);
+  });
+})
+</script>
+
+</html>

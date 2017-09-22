@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <script src='https://code.jquery.com/jquery-3.2.1.js'>
+  </script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="https://bootswatch.com/sandstone/bootstrap.min.css" charset="utf-8"></script>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+  <!-- Optional theme -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.1/css/font-awesome.min.css" />
+  <style type="text/css">
+    body {
+      font-family: verdana;
+    }
+
+    #result {
+      height: 200px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      box-shadow: 0 0 10px 0 #bbb;
+      margin-bottom: 30px;
+      font-size: 14px;
+      line-height: 25px;
+    }
+
+    button#micBtn {
+      font-size: 20px;
+      position: absolute;
+      top: 240px;
+      left: 50%;
+    }
+
+    /*#tombol-search {
+      font-size: 10px;
+      position: absolute;
+      top: -25px;
+      left: 160%;
+    }*/
+  </style>
+
+  <script>
+  (function(){
+    if(localStorage.getItem('token') == null)
+    {
+      window.location.href = "/index.html"
+    }
+  }())
+  </script>
+
+</head>
+
+<body>
+
+  <nav class="navbar navbar-inverse">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-2">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+        <a class="navbar-brand" href="#">VoiceTify</a>
+      </div>
+
+      <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-2">
+
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="#" class="logout">Logout</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-md-10">
+
+        <h4 align="center">Say Something to Find Your Favorite Music</h4>
+        <div id="result">...</div>
+        <button onclick="startConverting();" id="micBtn"><i class="fa fa-microphone"></i></button>
+        <div class="col-md-4">
+          <Button type="button" id='tombol-search' class="btn btn-success" onclick='search()'>Search</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-md-10">
+        <div class="col-md-5">
+          <iframe id='iframe' src="https://open.spotify.com/embed?uri=spotify:user:spotify:playlist:3rgsDhGHZxZ9sB9DQWQfuf" width="300" height="380" frameborder="0" allowtransparency="true"></iframe>
+        </div>
+        <div class="col-md-5">
+          <div class="col=md-6">
+            <div id='timeline'></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var r = document.getElementById('result');
+
+    function startConverting() {
+      if ('webkitSpeechRecognition' in window) {
+        var speechRecognizer = new webkitSpeechRecognition();
+        speechRecognizer.continuous = true;
+        speechRecognizer.interimResults = true;
+        speechRecognizer.lang = 'en-US';
+        speechRecognizer.start();
+
+        var finalTranscripts = '';
+
+        speechRecognizer.onresult = function(event) {
+          var interimTranscripts = '';
+          for (var i = event.resultIndex; i < event.results.length; i++) {
+            var transcript = event.results[i][0].transcript;
+            transcript.replace("\n", "<br>");
+            if (event.results[i].isFinal) {
+              finalTranscripts += transcript;
+            } else {
+              interimTranscripts += transcript;
+            }
+          }
+          r.innerHTML = finalTranscripts + '<span style="color:#999">' + interimTranscripts + '</span>';
+        };
+        speechRecognizer.onerror = function(event) {};
+      } else {
+        r.innerHTML = 'Your browser is not supported. If google chrome, please upgrade!';
+      }
+    }
+
+    function search() {
+      axios.post('http://localhost:3000/spotify/search', {
+          search: $('#result').text()
+        })
+        .then(data => {
+          console.log('===>', data);
+          $('#timeline').empty();
+          // console.log('hasil SPOTIFY HTML search',data);
+          data.data.playlists.items.forEach(playlist => {
+            console.log('playlist ', playlist)
+            $('#timeline').append(
+              `
+              <div class="list-group pagination">
+                <a href="#" class="list-group-item">
+                  <h4 class="list-group-item-heading">Playlist</h4>
+                  <p class="list-group-item-text">${playlist.name}</p>
+                  <img src="${playlist.images.urls}" alt="">
+                  <button type="button" name="button" onclick="changePlaylist('${playlist.uri}')">Select</button>
+                </a>
+              </div>
+
+           `
+            )
+          })
+        })
+    }
+
+    function changePlaylist(uri) {
+      console.log(uri)
+      $('#iframe').attr('src', 'http://open.spotify.com/embed?uri=' + uri)
+    }
+
+    $('.logout').click(function(){
+      localStorage.removeItem('token')
+      window.location.href ="/login.html"
+    })
+  </script>
+</body>
+
+</html>
