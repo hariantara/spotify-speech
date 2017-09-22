@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <script src='https://code.jquery.com/jquery-3.2.1.js'> </script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.1/css/font-awesome.min.css" />
+		<style type="text/css">
+			body{
+				font-family: verdana;
+			}
+			#result{
+				height: 200px;
+				border: 1px solid #ccc;
+				padding: 10px;
+				box-shadow: 0 0 10px 0 #bbb;
+				margin-bottom: 30px;
+				font-size: 14px;
+				line-height: 25px;
+			}
+			button#micBtn{
+				font-size: 20px;
+				position: absolute;
+				top: 240px;
+				left: 50%;
+			}
+		</style>
+  </head>
+  <body>
+    <h4 align="center">Speechtify</h4>
+		<div id="result" class='spotify'>...</div>
+		<button onclick="startConverting();" id="micBtn"><i class="fa fa-microphone"></i></button>
+    <div class="">
+      <input value='' placeholder="insert your search here" id="new-search">
+      <input type="button" value='Post' onclick='search()'>
+    </div>
+
+    <iframe id='iframe' src="https://open.spotify.com/embed?uri=spotify:user:spotify:playlist:3rgsDhGHZxZ9sB9DQWQfuf" width="300" height="380" frameborder="0" allowtransparency="true"></iframe>
+
+    <div id="timeline"></div>
+    <script>
+    var r = document.getElementById('result');
+
+    function startConverting () {
+      if('webkitSpeechRecognition' in window){
+        var speechRecognizer = new webkitSpeechRecognition();
+        speechRecognizer.continuous = true;
+        speechRecognizer.interimResults = true;
+        speechRecognizer.lang = 'en-US';
+        speechRecognizer.start();
+
+        var finalTranscripts = '';
+
+        speechRecognizer.onresult = function(event){
+          var interimTranscripts = '';
+          for(var i = event.resultIndex; i < event.results.length; i++){
+            var transcript = event.results[i][0].transcript;
+            transcript.replace("\n", "<br>");
+            if(event.results[i].isFinal){
+              finalTranscripts += transcript;
+            }else{
+              interimTranscripts += transcript;
+            }
+          }
+          r.innerHTML = finalTranscripts + '<span style="color:#999">' + interimTranscripts + '</span>';
+        };
+        speechRecognizer.onerror = function (event) {
+        };
+      }else{
+        r.innerHTML = 'Your browser is not supported. If google chrome, please upgrade!';
+      }
+    }
+
+    // function search () {
+    //   axios.post('http://localhost:3000/spotify/search', {
+    //     search: $('div').text()
+    //   }).
+    //   then(data => {
+    //     console.log(data);
+    //   })
+    // })
+
+    function search() {
+      axios.post('http://localhost:3000/spotify/search', {
+        search: $('#new-search').val()
+      })
+      .then(data => {
+        console.log('===>', data);
+        $('#timeline').empty();
+       // console.log('hasil SPOTIFY HTML search',data);
+       data.data.playlists.items.forEach( playlist => {
+         console.log('playlist ', playlist)
+         $('#timeline').append(`
+           <div>
+             <p>${playlist.name}</p>
+             <a href="${playlist.external_urls.spotify}">${playlist.external_urls.spotify}</a>
+             <button type="button" name="button" onclick="changePlaylist('${playlist.uri}')">Select</button>
+           </div>
+           `
+         )
+       })
+      })
+    }
+
+    function changePlaylist (uri) {
+      console.log(uri)
+      $('#iframe').attr('src', 'http://open.spotify.com/embed?uri=' + uri)
+    }
+      </script>
+  </body>
+</html>
